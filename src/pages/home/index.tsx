@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { Container, Hero, Preview } from './styles'
 import previewImage from '../../assets/app-preview.png'
 import { ClaimUsernameForm } from './components/ClaimUsernameForm'
-import { Smiley } from 'phosphor-react'
+
 
 
 export default function Home() {
@@ -11,9 +11,8 @@ export default function Home() {
     <Container>
       <Hero>
         <Heading as="h1" size="4xl">Uncomplicated scheduling</Heading>
-        <Text>Organize your appointments in a simple and efficient way.</Text>
+        <Text size="xl">Connect your calendar and let people book you when you're free!</Text>
         <ClaimUsernameForm />
-        <Text size="sm" >Connect your calendar and let people book you when you're free!</Text>
       </Hero>
       <Preview>
         <Image
