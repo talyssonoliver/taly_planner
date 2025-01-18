@@ -4,13 +4,14 @@ import { Form, FormAnnotation } from './styles'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
+import { useRouter } from 'next/router'
 
 const ClaimUsernameFormSchema = z.object({
   username: z
     .string()
-    .min(3, { message: 'User must have at least 3 letters.' })
+    .min(3, { message: 'Must have at least 3 letters.' })
     .regex(/^([a-z\\-]+)$/i, {
-      message: 'The user can only have letters and hyphens.',
+      message: 'Can only use letters and hyphens.',
     })
     .transform((username) => username.toLowerCase()),
 })
@@ -21,13 +22,16 @@ export function ClaimUsernameForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<ClaimUsernameFormData>({
     resolver: zodResolver(ClaimUsernameFormSchema),
   })
-
+  
+  const router = useRouter()
+  
   async function handleClaimUsername(data: ClaimUsernameFormData) {
-    console.log(data)
+    const { username } = data
+    router.push(`/register?username=${username}`)
   }
   return (
     <>
@@ -41,7 +45,7 @@ export function ClaimUsernameForm() {
           onPointerLeaveCapture={() => {}} 
           crossOrigin=""
         />
-        <Button size="sm" type="submit">
+        <Button size="sm" type="submit" disabled={isSubmitting}>
           Register
           <ArrowRight />
         </Button>
@@ -51,7 +55,7 @@ export function ClaimUsernameForm() {
         <Text size="sm">
           {errors.username
             ? errors.username.message
-            : 'Type the desired username'}
+            : 'Type your desired username'}
         </Text>
       </FormAnnotation>
     </>
