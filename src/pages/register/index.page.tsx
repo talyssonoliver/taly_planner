@@ -1,28 +1,27 @@
 import { Button, Heading, MultiStep, Text, TextInput } from "@ignite-ui/react";
-import { Container, Form, Header, FormError} from "./styles";   
+import { Container, Form, Header, FormError } from "./styles";
 import { ArrowRight } from "phosphor-react";
 import { z } from "zod";
-import { useRouter } from 'next/router'
-import { useEffect } from 'react'
-import { AxiosError } from 'axios'
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+import { AxiosError } from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { api } from "@/lib/axios";
+import { toast } from "react-toastify";
 
-type RegisterFormData = z.infer<typeof registerFormSchema>
+type RegisterFormData = z.infer<typeof registerFormSchema>;
 
 const registerFormSchema = z.object({
   username: z
     .string()
-    .min(3, { message: 'Must have at least 3 letters.' })
+    .min(3, { message: "Must have at least 3 letters." })
     .regex(/^([a-z\\-]+)$/i, {
-      message: 'Can only use letters and hyphens.',
+      message: "Can only use letters and hyphens.",
     })
     .transform((username) => username.toLowerCase()),
-  name: z
-    .string()
-    .min(3, { message: 'Must have at least trhee letters.' }),
-})
+  name: z.string().min(3, { message: "Must have at least trhee letters." }),
+});
 
 export default function Register() {
   const {
@@ -32,51 +31,69 @@ export default function Register() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerFormSchema),
-  })
+  });
 
-  const router = useRouter()
+  const router = useRouter();
   useEffect(() => {
     if (router.query.username) {
-      setValue('username', String(router.query.username))
+      setValue("username", String(router.query.username));
     }
-  }, [router.query?.username, setValue])
+  }, [router.query?.username, setValue]);
 
   async function handleRegister(data: RegisterFormData) {
     try {
-      await api.post('/users', {
+      await api.post("/users", {
         name: data.name,
         username: data.username,
-      })
-      await router.push('/register/connect_calendar')
+      });
+      await router.push("/register/connect_calendar");
     } catch (err) {
       if (err instanceof AxiosError && err?.response?.data?.message) {
-        alert(err.response.data.message)
-        return
+        toast.error(err.response.data.message);
+        return;
       }
-      console.error(err)
     }
   }
 
   return (
     <Container>
       <Header>
-        <Heading as="strong" size="3xl">Welcome to TALY!</Heading>
-        <Text size="xl" >We need some information to create your account. Oh, you can edit this later.</Text>
+        <Heading as="strong" size="3xl">
+          Welcome to TALY!
+        </Heading>
+        <Text size="xl">
+          We need some information to create your account. Oh, you can edit this
+          later.
+        </Text>
         <MultiStep size={4} currentStep={1} />
       </Header>
 
       <Form as="form" onSubmit={handleSubmit(handleRegister)}>
         <label htmlFor="Username">
           <Text size="sm">Username</Text>
-          <TextInput id="username" prefix="taly.dev/" placeholder="your username" { ...register('username', { required: true }) } crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>
-          
+          <TextInput
+            id="username"
+            prefix="taly.dev/"
+            placeholder="your username"
+            {...register("username", { required: true })}
+            crossOrigin={undefined}
+            onPointerEnterCapture={undefined}
+            onPointerLeaveCapture={undefined}
+          />
+
           {errors.username && (
             <FormError size="sm">{errors.username.message}</FormError>
           )}
         </label>
         <label htmlFor="name">
           <Text size="lg">Name and Surname</Text>
-          <TextInput placeholder="Your Name" { ...register('name', { required: true }) } crossOrigin={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+          <TextInput
+            placeholder="Your Name"
+            {...register("name", { required: true })}
+            crossOrigin={undefined}
+            onPointerEnterCapture={undefined}
+            onPointerLeaveCapture={undefined}
+          />
           {errors.name && (
             <FormError size="sm">{errors.name.message}</FormError>
           )}
@@ -84,9 +101,9 @@ export default function Register() {
 
         <Button type="submit" disabled={isSubmitting}>
           Next
-        <ArrowRight />
+          <ArrowRight />
         </Button>
       </Form>
     </Container>
-  )
+  );
 }

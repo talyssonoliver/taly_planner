@@ -1,33 +1,32 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { prisma } from '../../../lib/prisma'
-import { setCookie } from 'nookies'
-
+import type { NextApiRequest, NextApiResponse } from "next";
+import { prisma } from "../../../lib/prisma";
+import { setCookie } from "nookies";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  if (req.method !== 'POST') {
-    return res.status(405).end()
+  if (req.method !== "POST") {
+    return res.status(405).end();
   }
-  const { name, username } = req.body
+  const { name, username } = req.body;
 
-  const existingUser = await prisma.user.findUnique({ where: { username, } });
+  const existingUser = await prisma.user.findUnique({ where: { username } });
   if (existingUser) {
-    return res.status(400).json({ message: 'Username already exists.' });
+    return res.status(400).json({ message: "Username already exists." });
   }
-  
+
   const user = await prisma.user.create({
     data: {
       name,
       username,
     },
-  })
+  });
 
-  setCookie({ res }, '@taly:userId', user.id, {
+  setCookie({ res }, "@taly:userId", user.id, {
     maxAge: 60 * 60 * 24 * 7, // 7 days
-    path: '/',
-  })
-  
-  return res.status(201).json(user)
+    path: "/",
+  });
+
+  return res.status(201).json(user);
 }
