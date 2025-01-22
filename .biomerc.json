@@ -1,0 +1,16 @@
+{
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "space",
+		"indentSize": 2,
+		"lineWidth": 80
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"no-unused-vars": "error",
+			"no-undef": "off",
+			"eqeqeq": "warn"
+		}
+	}
+}

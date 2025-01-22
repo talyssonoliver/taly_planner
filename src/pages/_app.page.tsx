@@ -9,23 +9,23 @@ import { DefaultSeo } from "next-seo";
 globalStyles();
 
 export default function App({
-  Component,
-  pageProps: { session, ...pageProps },
+	Component,
+	pageProps: { session, ...pageProps },
 }: AppProps) {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <SessionProvider session={session}>
-        <DefaultSeo
-          openGraph={{
-            type: "website",
-            locale: "en_UK",
-            url: "https://www.google.com",
-            siteName: "Taly Planner",
-          }}
-        />
+	return (
+		<QueryClientProvider client={queryClient}>
+			<SessionProvider session={session}>
+				<DefaultSeo
+					openGraph={{
+						type: "website",
+						locale: "en_UK",
+						url: "https://www.google.com",
+						siteName: "Taly Planner",
+					}}
+				/>
 
-        <Component {...pageProps} />
-      </SessionProvider>
-    </QueryClientProvider>
-  );
+				<Component {...pageProps} />
+			</SessionProvider>
+		</QueryClientProvider>
+	);
 }
