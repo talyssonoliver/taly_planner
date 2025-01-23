@@ -1,10 +1,10 @@
-import dayjs from "dayjs";
-import { api } from "../../lib/axios";
-import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/router";
-import { CaretLeft, CaretRight } from "phosphor-react";
 import { useCallback, useMemo, useState } from "react";
+import dayjs from "dayjs";
+import { useRouter } from "next/router";
+import { useQuery } from "@tanstack/react-query";
+import { CaretLeft, CaretRight } from "phosphor-react";
 
+import { api } from "../../lib/axios";
 import { getWeekDays } from "../../utils/get-week-days";
 import {
 	CalendarActions,
@@ -14,7 +14,6 @@ import {
 	CalendarHeader,
 	CalendarTitle,
 } from "./styles";
-import { Button } from "@ignite-ui/react";
 
 interface CalendarWeek {
 	week: number;
@@ -33,12 +32,12 @@ interface BlockedDates {
 
 interface CalendarProps {
 	selectedDate: Date | null;
-	onDateSelected: () => void;
+	onDateSelected: (date: Date) => void;
 }
 
 export function Calendar({ selectedDate, onDateSelected }: CalendarProps) {
 	const [currentDate, setCurrentDate] = useState(() => {
-		return dayjs().date(1);
+		return dayjs().set("date", 1);
 	});
 
 	const router = useRouter();
@@ -56,71 +55,68 @@ export function Calendar({ selectedDate, onDateSelected }: CalendarProps) {
 	const currentMonth = currentDate.format("MMMM");
 	const currentYear = currentDate.format("YYYY");
 
-	const { data: blockedDates } = useQuery<BlockedDates>({
-		queryKey: ["blocked-dates", currentDate.year(), currentDate.month()],
+	// Busca dados de dias bloqueados da API
+	const { data: blockedData } = useQuery<BlockedDates>({
+		queryKey: [
+			"blocked-dates",
+			currentDate.get("year"),
+			currentDate.get("month"),
+		],
 		queryFn: async () => {
 			const response = await api.get(`/users/${username}/blocked-dates`, {
 				params: {
-					year: currentDate.year(),
-					month: currentDate.month() + 1,
+					year: currentDate.get("year"),
+					month: currentDate.get("month") + 1,
 				},
 			});
 			return response.data as BlockedDates;
 		},
-		// Se quiser, pode adicionar options (enabled, refetchOnWindowFocus, etc.)
 	});
 
 	const calendarWeeks = useMemo(() => {
-		if (!blockedDates) {
-			return [] as CalendarWeeks;
+		if (!blockedData) {
+			return [];
 		}
 
-		const daysInMonth = currentDate.daysInMonth();
+		const { blockedWeekDays, blockedDates } = blockedData;
 
-		const daysInMonthArray = Array.from({ length: daysInMonth }).map((_, i) => {
-			return currentDate.date(i + 1);
+		// Lista dos dias do mês atual
+		const daysInMonthArray = Array.from({
+			length: currentDate.daysInMonth(),
+		}).map((_, i) => {
+			return currentDate.set("date", i + 1);
 		});
 
-		// Dia da semana do "dia 1" do mês atual (0=Domingo...6=Sábado)
-		const firstWeekDay = currentDate.day();
-
-		// Monta os dias do mês anterior para preencher a 1ª semana
-		const previousMonthFillArray = Array.from({ length: firstWeekDay })
-			.map((_, i) => {
-				return currentDate
-					.date(1) // garante que estamos no dia 1 do mês atual
-					.subtract(i + 1, "day");
-			})
+		// Preenchimento dos dias do mês anterior (no início da grid)
+		const firstWeekDay = currentDate.get("day");
+		const previousMonthFill = Array.from({ length: firstWeekDay })
+			.map((_, i) => currentDate.subtract(i + 1, "day"))
 			.reverse();
 
-		const lastDayInCurrentMonth = currentDate.date(daysInMonth);
-		const lastWeekDay = lastDayInCurrentMonth.day();
-
-		const nextMonthFillArray = Array.from({
+		// Preenchimento dos dias do mês seguinte (no final da grid)
+		const lastDayInCurrentMonth = currentDate.set(
+			"date",
+			currentDate.daysInMonth(),
+		);
+		const lastWeekDay = lastDayInCurrentMonth.get("day");
+		const nextMonthFill = Array.from({
 			length: 7 - (lastWeekDay + 1),
-		}).map((_, i) => {
-			return lastDayInCurrentMonth.add(i + 1, "day");
-		});
+		}).map((_, i) => lastDayInCurrentMonth.add(i + 1, "day"));
 
+		// Combina todos os dias (mês anterior, mês atual, mês seguinte)
 		const calendarDays = [
-			...previousMonthFillArray.map((day) => {
-				return { date: day, disabled: true };
-			}),
-			...daysInMonthArray.map((day) => {
-				return {
-					date: day,
-					disabled:
-						day.endOf("day").isBefore(new Date()) ||
-						blockedDates.blockedWeekDays.includes(day.day()) ||
-						blockedDates.blockedDates.includes(day.date()),
-				};
-			}),
-			...nextMonthFillArray.map((day) => {
-				return { date: day, disabled: true };
-			}),
+			...previousMonthFill.map((date) => ({ date, disabled: true })),
+			...daysInMonthArray.map((date) => ({
+				date,
+				disabled:
+					date.endOf("day").isBefore(new Date()) ||
+					blockedWeekDays.includes(date.get("day")) ||
+					blockedDates.includes(date.get("date")),
+			})),
+			...nextMonthFill.map((date) => ({ date, disabled: true })),
 		];
 
-		// Agrupamos de 7 em 7 (semanas)
+		// Agrupa cada 7 dias para formar as semanas
 		const weeks = calendarDays.reduce<CalendarWeeks>((acc, _, i, original) => {
 			if (i % 7 === 0) {
 				acc.push({
@@ -132,7 +128,7 @@ export function Calendar({ selectedDate, onDateSelected }: CalendarProps) {
 		}, []);
 
 		return weeks;
-	}, [currentDate, blockedDates]);
+	}, [currentDate, blockedData]);
 
 	return (
 		<CalendarContainer>
@@ -140,7 +136,6 @@ export function Calendar({ selectedDate, onDateSelected }: CalendarProps) {
 				<CalendarTitle>
 					{currentMonth} <span>{currentYear}</span>
 				</CalendarTitle>
-
 				<CalendarActions>
 					<button
 						type="button"
@@ -169,14 +164,10 @@ export function Calendar({ selectedDate, onDateSelected }: CalendarProps) {
 							{days.map(({ date, disabled }) => (
 								<td key={date.toString()}>
 									<CalendarDay
-										onClick={() => {
-											if (!disabled) {
-												onDateSelected();
-											}
-										}}
+										onClick={() => onDateSelected(date.toDate())}
 										disabled={disabled}
 									>
-										{date.date()}
+										{date.get("date")}
 									</CalendarDay>
 								</td>
 							))}

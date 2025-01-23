@@ -85,13 +85,13 @@ export default [
 
 			"no-unused-vars": "off",
 			"no-undef": "off",
+			"no-null": "off",
 			"react-hooks/rules-of-hooks": "error",
 			"react-hooks/exhaustive-deps": "warn",
-			"prettier/prettier": "off",
 
-			// React (desabilitar algumas regras que não fazem sentido em TS)
-			"react/react-in-jsx-scope": "off", // React 17+ não exige
-			"react/prop-types": "off", // usando TS, não PropTypes
+			"biome/no-null": "off",
+			"react/react-in-jsx-scope": "off",
+			"react/prop-types": "off",
 
 			"@typescript-eslint/no-explicit-any": "off",
 			"@typescript-eslint/explicit-module-boundary-types": "off",

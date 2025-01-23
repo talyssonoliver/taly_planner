@@ -10,7 +10,8 @@
 		"rules": {
 			"no-unused-vars": "error",
 			"no-undef": "off",
-			"eqeqeq": "warn"
+			"eqeqeq": "warn",
+			"no-null": "off"
 		}
 	}
 }

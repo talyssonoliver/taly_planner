@@ -1,0 +1,6 @@
+{
+	"files.autoSave": "afterDelay",
+	"editor.inlineSuggest.edits.experimental.useInterleavedLinesDiff": "never",
+	"zenMode.centerLayout": false,
+	"terminal.integrated.accessibleViewFocusOnCommandExecution": false
+}
